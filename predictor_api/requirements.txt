@@ -1,0 +1,6 @@
+Flask
+prometheus_client
+docker
+sklearn
+pandas
+numpy

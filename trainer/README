@@ -1,0 +1,7 @@
+## How to run the train process
+
+```console
+ docker build -t rappi_trainer . && docker run  --net host -v `pwd`:/trainer rappi_trainer
+```
+
+When the train process  finishes it saves two files models/random_forest_classifier and models/transformer
