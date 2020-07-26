@@ -1,0 +1,9 @@
+Flask
+sklearn
+numpy
+joblib
+psutil
+prometheus_client
+requests
+marshmallow
+pandas

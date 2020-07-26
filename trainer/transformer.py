@@ -63,11 +63,11 @@ class DataTransformer:
         return encoders
 
     def get_feature_imputations(self):
-        age_inputation_fn = lambda dataset: dataset['Age'].fillna(self.fare_median, inplace=True)
+        age_inputation_fn = lambda dataset: dataset['Age'].fillna(self.age_median, inplace=True)
 
         embarked_inputation_fn = lambda dataset: dataset['Embarked'].fillna(self.embarked_most_frequent, inplace=True)
 
-        fare_inputation_fn = lambda dataset: dataset['Fare'].fillna(self.age_median, inplace=True)
+        fare_inputation_fn = lambda dataset: dataset['Fare'].fillna(self.fare_median, inplace=True)
 
         feature_inputation = {'Age': age_inputation_fn, 'Embarked': embarked_inputation_fn, 'Fare': fare_inputation_fn}
 
