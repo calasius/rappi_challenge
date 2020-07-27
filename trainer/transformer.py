@@ -1,7 +1,8 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import pickle
 import log
+import numpy as np
 
 SEED = 42
 
@@ -17,9 +18,9 @@ class DataTransformer:
         self.fare_intervals = None
         self.age_intervals = None
         self.encoders = None
+        self.onehot_encoders = None
 
     def fit(self, dataset):
-        logger.info('Fitting dataset')
         self.fare_median = dataset['Fare'].median()
         self.age_median = dataset['Age'].median()
         self.embarked_most_frequent = dataset['Embarked'].mode()[0]
@@ -33,6 +34,10 @@ class DataTransformer:
         self.calculate_new_features(dataset)
 
         self.encoders = self.get_encoders(dataset)
+
+        self.apply_label_encoders(dataset)
+
+        self.onehot_encoders = self.get_onehot_encoders(dataset)
 
         return self
 
@@ -51,16 +56,24 @@ class DataTransformer:
     @staticmethod
     def get_encoders(dataset):
 
-        dataset.to_pickle('dataset.pkl')
-
         categorical_variables = ['Sex', 'Embarked', 'Title', 'AgeBin', 'FareBin']
 
         encoders = {}
         for cat in categorical_variables:
-            encoder = LabelEncoder().fit(dataset[cat])
+            encoder = LabelEncoder().fit(dataset[[cat]])
             encoders[cat] = encoder
 
         return encoders
+
+    def get_onehot_encoders(self, dataset):
+        categories = ['Sex_Code', 'Embarked_Code', 'Title_Code']
+
+        onehot_encoders = {}
+
+        for cat in categories:
+            encoder = OneHotEncoder(sparse=False).fit(dataset[[cat]])
+            onehot_encoders[cat] = encoder
+        return onehot_encoders
 
     def get_feature_imputations(self):
         age_inputation_fn = lambda dataset: dataset['Age'].fillna(self.age_median, inplace=True)
@@ -89,7 +102,8 @@ class DataTransformer:
 
         is_married_fn = lambda dataset: (dataset.Title == 'Mrs').astype(int)
 
-        title_feature_fn = lambda dataset: dataset['Name'].str.split(", ", expand=True)[1].str.split(".", expand=True)[0]
+        title_feature_fn = lambda dataset: dataset['Name'].str.split(", ", expand=True)[1].str.split(".", expand=True)[
+            0]
 
         fare_bin_feature_fn = lambda dataset: dataset.Fare.apply(
             lambda fare: self.get_interval(fare, self.fare_intervals))
@@ -101,32 +115,38 @@ class DataTransformer:
 
         return new_features
 
-    def transform(self, df):
-        logger.info('Transforming dataset')
-        dataset = df.copy(deep=True)
-
-        self.apply_imputations(dataset)
-
-        self.calculate_new_features(dataset)
-
+    def apply_label_encoders(self, dataset):
         dataset['Sex_Code'] = self.encoders['Sex'].transform(dataset['Sex'])
         dataset['Embarked_Code'] = self.encoders['Embarked'].transform(dataset['Embarked'])
         dataset['Title_Code'] = self.encoders['Title'].transform(dataset['Title'])
         dataset['AgeBin_Code'] = self.encoders['AgeBin'].transform(dataset['AgeBin'])
         dataset['FareBin_Code'] = self.encoders['FareBin'].transform(dataset['FareBin'])
 
-        features = ['Sex', 'Pclass', 'Embarked', 'Title', 'SibSp', 'Parch', 'AgeBin_Code', 'FareBin_Code', 'FamilySize',
-                    'IsAlone', 'IsMarried']
+    def transform(self, df):
+        dataset = df.copy(deep=True)
 
-        return pd.get_dummies(dataset[features])
+        self.apply_imputations(dataset)
+
+        self.calculate_new_features(dataset)
+
+        self.apply_label_encoders(dataset)
+
+        onehot_sex = self.onehot_encoders['Sex_Code'].transform(dataset[['Sex_Code']])
+        onehot_embarked = self.onehot_encoders['Embarked_Code'].transform(dataset[['Embarked_Code']])
+        onehot_title = self.onehot_encoders['Title_Code'].transform(dataset[['Title_Code']])
+
+        onehot_features = pd.DataFrame(data=np.concatenate([onehot_sex, onehot_embarked, onehot_title], axis=1),
+                                       index=dataset.index)
+
+        features = ['Pclass', 'SibSp', 'Parch', 'AgeBin_Code', 'FareBin_Code', 'FamilySize', 'IsAlone', 'IsMarried']
+
+        return dataset[features].join(onehot_features)
 
     def save(self, filename):
-        logger.info('Saving transformer in file: {}'.format(filename))
         with open(filename, "wb") as f:
             pickle.dump(self, f)
 
     @classmethod
     def load(cls, filename):
-        logger.info('Loading transformer from file: {}'.format(filename))
         with open(filename, "rb") as f:
             return pickle.load(f)

@@ -5,6 +5,7 @@ from predictor import build_predictor
 from errors import ServiceException
 from flask import jsonify
 from model import PassengerSchema, Passenger
+from predictor import actual_predictors
 
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
@@ -36,15 +37,23 @@ def deploy(name):
         raise ServiceException(message, status_code=410)
 
 
-@app.route('/model/predict/', methods=['POST'])
+@app.route('/model/predict', methods=['POST'])
 def predict():
     if not request.json:
-        abort(400)
+        raise ServiceException('Please post a correct json')
     else:
         schema = PassengerSchema()
         errors = schema.validate(request.json)
-        logger.info(errors)
+        if len(errors) > 0:
+            logger.error(errors)
+            raise ServiceException(str(errors))
+        else:
+            passenger = schema.load(request.json)
+            predictor = actual_predictors[0]
+            prediction = predictor.predict(passenger.to_dict())[0]
+
+            return Response(str(prediction), 200)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0')
