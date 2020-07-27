@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, Response, abort
+from flask import Flask, request, Response
 import log
 from metrics import system_resource_metrics
 from predictor import build_predictor
 from errors import ServiceException
 from flask import jsonify
-from model import PassengerSchema, Passenger
+from model import PassengerSchema
 from predictor import actual_predictors
 
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
@@ -34,7 +34,7 @@ def deploy(name):
         return Response('The model {} has been deployed correctly'.format(name), status=200)
     except Exception as e:
         message = 'There was a problem deploying model {} error = {}'.format(name, str(e))
-        raise ServiceException(message, status_code=410)
+        raise ServiceException(message)
 
 
 @app.route('/model/predict', methods=['POST'])
@@ -51,7 +51,6 @@ def predict():
             passenger = schema.load(request.json)
             predictor = actual_predictors[0]
             prediction = predictor.predict(passenger.to_dict())[0]
-
             return Response(str(prediction), 200)
 
 

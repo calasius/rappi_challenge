@@ -1,0 +1,11 @@
+{
+  "Pclass": 1,
+  "Name":"Spencer, Mrs. William Augustus (Marie Eugenie)",
+  "Sex":"female",
+  "SibSp":1,
+  "Parch":0,
+  "Ticket":"PC 17569",
+  "Fare":146.5208,
+  "Cabin":"B78",
+  "Embarked":"C"
+}

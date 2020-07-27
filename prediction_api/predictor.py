@@ -32,3 +32,4 @@ def build_predictor(name):
     classifier = joblib.load('trainer/models/{}'.format(name))
     transformer = DataTransformer.load('trainer/models/transformer')
     actual_predictors.append(Predictor(name, classifier, transformer))
+    return actual_predictors[0]

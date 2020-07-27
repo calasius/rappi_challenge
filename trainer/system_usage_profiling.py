@@ -31,7 +31,7 @@ class SystemUsageProfiler:
     def push_data(self, cpu, memory):
         self.system_usage.labels('CPU').set(cpu)
         self.system_usage.labels('Memory').set(memory)
-        push_to_gateway('localhost:9091', job=self.process_name, registry=self.registry)
+        push_to_gateway('pushgateway:9091', job=self.process_name, registry=self.registry)
 
     def finish(self):
         self.stop = True

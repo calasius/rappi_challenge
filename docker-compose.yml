@@ -1,0 +1,56 @@
+version: '2'
+
+networks:
+  default:
+    driver: bridge
+
+services:
+    api:
+        container_name: prediction_api
+        build: .
+        volumes:
+            - ./prediction_api/:/usr/src/app/
+            - ./trainer/:/usr/src/app/trainer/
+        ports:
+            - 5000:5000
+        environment:
+            PORT: 5000
+            FLASK_DEBUG: 0
+    trainer:
+        container_name: trainer
+        build: trainer/
+        volumes:
+        - ./trainer/:/trainer/
+
+    pushgateway:
+        image: prom/pushgateway:v0.4.0
+        container_name: pushgateway
+        ports:
+            - 9091:9091
+
+    prometheus:
+        image: prom/prometheus:v2.0.0
+        container_name: prometheus
+        command: --config.file=/etc/prometheus/prometheus.yml
+        ports:
+            - 9090:9090
+        volumes:
+            - ./prom-stack/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./prom-stack/prometheus/alerts/:/etc/prometheus/rules.d/
+
+    grafana:
+        image: grafana/grafana:4.6.2
+        container_name: grafana
+        ports:
+            - 3000:3000
+        environment:
+            - GF_SECURITY_ADMIN_PASSWORD=password
+
+    alertmanager:
+        image: prom/alertmanager:v0.11.0
+        container_name: alertmanager
+        command: --config.file=/etc/alertmanager/alertmanager.yml
+        ports:
+            - 9093:9093
+        volumes:
+            - ./prom-stack/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml

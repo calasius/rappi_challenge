@@ -1,0 +1,11 @@
+{
+  "Pclass": 3,
+  "Name":"Johnson, Mrs. Oscar W (Elisabeth Vilhelmina Berg)",
+  "Sex":"female",
+  "Age":27,
+  "SibSp":0,
+  "Parch":2,
+  "Ticket":"347742",
+  "Fare":11.1333,
+  "Embarked":"S"
+}

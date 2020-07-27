@@ -1,0 +1,11 @@
+{
+  "Pclass": 3,
+  "Name": "Andersson, Mr. Anders Johan",
+  "Sex": "male",
+  "Age": 39,
+  "SibSp": 1,
+  "Parch": 5,
+  "Ticket": "347082",
+  "Fare": 31.275,
+  "Embarked": "S"
+}
