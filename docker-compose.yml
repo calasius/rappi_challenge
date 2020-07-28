@@ -5,7 +5,7 @@ networks:
     driver: bridge
 
 services:
-    api:
+    prediction_api:
         container_name: prediction_api
         build: .
         volumes:

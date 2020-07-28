@@ -4,8 +4,8 @@ from metrics import system_resource_metrics
 from predictor import build_predictor
 from errors import ServiceException
 from flask import jsonify
-from model import PassengerSchema
 from predictor import actual_predictors
+from model import build_list_passengers
 
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
@@ -42,16 +42,14 @@ def predict():
     if not request.json:
         raise ServiceException('Please post a correct json')
     else:
-        schema = PassengerSchema()
-        errors = schema.validate(request.json)
-        if len(errors) > 0:
-            logger.error(errors)
-            raise ServiceException(str(errors))
-        else:
-            passenger = schema.load(request.json)
+        passengers = build_list_passengers(request.json)
+        if len(actual_predictors) > 0:
             predictor = actual_predictors[0]
-            prediction = predictor.predict(passenger.to_dict())[0]
+            prediction = [predictor.predict(passenger.to_dict())[0] for passenger in passengers]
             return Response(str(prediction), 200)
+        else:
+            raise ServiceException('There is no model deployed. you must deploy using /model/deploy/<model-name> '
+                                   'and the model must be located in trainer/models')
 
 
 if __name__ == '__main__':

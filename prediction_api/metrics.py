@@ -5,7 +5,7 @@ import psutil
 class SystemResourceMetrics:
     def __init__(self):
         self.registry = CollectorRegistry()
-        self.system_usage = Gauge('system_resources', 'Hold current system resource usage', ['resource_type'],
+        self.system_usage = Gauge('prediction_api_system_resources', 'Hold current system resource usage', ['resource_type'],
                                   registry=self.registry)
 
     def collect_metrics(self):
